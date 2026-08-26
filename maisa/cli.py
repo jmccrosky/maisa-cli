@@ -50,6 +50,11 @@ def _run(fn):
 
 def cmd_login(args):
     from . import auth
+    if args.auto:
+        # OP auto-login: fills the user ID (from Keychain/env/file), user approves in app.
+        from . import auto
+        auto.auto_login(headless=not args.headed, timeout_s=args.timeout)
+        return 0
     if args.stream:
         # Capture-free: stream the browser itself to the phone over Tailscale.
         # No macOS Screen Sharing needed. Blocks until login completes.
@@ -387,6 +392,9 @@ def build_parser():
                     help="capture-free: stream the browser itself to your phone over Tailscale (no Screen Sharing needed)")
     pl.add_argument("--host", default="0.0.0.0", help="bind host for --stream (default 0.0.0.0)")
     pl.add_argument("--port", type=int, default=6080, help="port for the --stream viewer")
+    pl.add_argument("--auto", action="store_true",
+                    help="OP auto-login: fill your OP user ID (from Keychain), you approve in the OP app")
+    pl.add_argument("--headed", action="store_true", help="run --auto with a visible browser (needs a GUI session)")
     pl.set_defaults(func=cmd_login)
 
     ps = sub.add_parser("session", help="manage the stored session")
