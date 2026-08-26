@@ -100,7 +100,45 @@ def auto_login(headless: bool = True, timeout_s: int = 240):
         print("APPROVE_NOW :: OP user ID submitted — approve the login in your OP-mobiili app "
               "on your phone.", flush=True)
 
-        page.wait_for_url("**/maisa/Home/**", timeout=timeout_s * 1000)
+        # After approval, click through any "continue to service" / "return to
+        # service" consent step, then land on the Maisa home page.
+        import time as _t
+        continue_labels = ["Continue to service", "Jatka palveluun", "Palaa palveluun",
+                           "Return to service", "Continue", "Jatka", "Fortsätt"]
+        start = _t.time()
+        diag_saved = False
+        while _t.time() - start < timeout_s:
+            if "/maisa/Home/" in page.url:
+                break
+            for lbl in continue_labels:
+                try:
+                    el = page.get_by_role("button", name=lbl, exact=False).first
+                    if el.count() and el.is_visible():
+                        el.click(timeout=2000)
+                        _t.sleep(2)
+                        break
+                except Exception:
+                    pass
+            # One privacy-safe diagnostic (URL + control labels only, no screenshot
+            # — the consent page shows the user's SSN/name) if still not home.
+            if not diag_saved and _t.time() - start > 12 and "/maisa/Home/" not in page.url:
+                try:
+                    labels = page.eval_on_selector_all(
+                        "button,a,input[type=submit]",
+                        "els => els.map(e => (e.innerText||e.value||e.getAttribute('aria-label')||'').trim())"
+                        ".filter(Boolean).slice(0,30)")
+                    (CONFIG_DIR / "auto-stuck.txt").write_text(
+                        json.dumps({"url": page.url, "controls": labels}, ensure_ascii=False, indent=2))
+                except Exception:
+                    pass
+                diag_saved = True
+            _t.sleep(1)
+
+        if "/maisa/Home/" not in page.url:
+            browser.close()
+            print("AUTO_LOGIN_TIMEOUT :: did not reach Maisa home (see auto-stuck.txt)", flush=True)
+            return None
+
         try:
             page.wait_for_load_state("networkidle", timeout=20000)
         except Exception:
