@@ -43,19 +43,23 @@ Auth is a captured web session that lasts ~1 hour. Two rules:
    run `maisa keepalive` every few minutes so it doesn't expire mid-task.
 
 2. **Re-login when it expires.** Any command may exit code 2 / print
-   "Session expired". When that happens, run:
+   "Session expired". Preferred path — OP auto-login:
 
-       maisa login --stream
+       maisa login --auto
 
-   This streams a browser to the user's phone over Tailscale (no macOS Screen
-   Sharing needed). It prints `REMOTE_LOGIN_READY :: Open this on your phone
-   (Tailscale): http://<ip>:6080/`. **Send that URL to the user over WhatsApp**
-   and ask them to open it and complete the bank login there (tap their bank,
-   type their user ID with the on-screen keyboard bar, approve in their bank
-   app). It blocks until they reach the Maisa home page, then prints
-   `REMOTE_LOGIN_DONE :: session captured` and exits 0. Then retry the original
-   command. (Run it in the background so you can read the READY line and relay
-   it while it waits.)
+   It fills the user's OP user ID (read locally from the Keychain — never
+   through you) and submits, then prints `APPROVE_NOW :: ... approve the login
+   in your OP-mobiili app`. **Relay that to the user over WhatsApp** so they
+   approve on their phone. It waits until they reach the Maisa home page, prints
+   `AUTO_LOGIN_DONE :: session captured`, and exits 0. Then retry the original
+   command. (Run it in the background so you can read and relay the APPROVE_NOW
+   line while it waits.) You never handle the user's user ID or any bank secret;
+   the user only approves in the app.
+
+   Fallback (only if `--auto` fails, e.g. OP page changed): `maisa login
+   --stream`, which streams a browser to the user's phone over Tailscale; relay
+   the `REMOTE_LOGIN_READY :: http://<ip>:6080/` URL and let them drive the
+   login on their phone. It prints `REMOTE_LOGIN_DONE` when captured.
 
 You never handle the user's bank credentials — the user always does the bank
 step themselves on their phone. There is no way around a periodic strong-auth
