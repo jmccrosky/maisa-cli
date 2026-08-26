@@ -163,15 +163,38 @@ def login(headless: bool = False, discover: bool = True, timeout_s: int = 300) -
 
 def tailscale_ip() -> str | None:
     """Best-effort Tailscale IPv4 of this machine (for the phone-facing URL)."""
-    for cmd in ("tailscale", "/Applications/Tailscale.app/Contents/MacOS/Tailscale"):
+    candidates = (
+        "tailscale",
+        "/Applications/Tailscale.app/Contents/MacOS/Tailscale",
+        "/usr/local/bin/tailscale",
+        "/opt/homebrew/bin/tailscale",
+    )
+    for cmd in candidates:
         exe = shutil.which(cmd) or (cmd if os.path.exists(cmd) else None)
         if not exe:
             continue
         try:
             out = subprocess.check_output([exe, "ip", "-4"], text=True, timeout=5).strip()
-            return out.splitlines()[0].strip() if out else None
+            if out:
+                return out.splitlines()[0].strip()
         except Exception:
             continue
+    # Fallback: find the Tailscale CGNAT address (100.64.0.0/10) on an interface.
+    try:
+        import ipaddress
+        out = subprocess.check_output(["ifconfig"], text=True, timeout=5)
+        net = ipaddress.ip_network("100.64.0.0/10")
+        for line in out.splitlines():
+            line = line.strip()
+            if line.startswith("inet "):
+                addr = line.split()[1]
+                try:
+                    if ipaddress.ip_address(addr) in net:
+                        return addr
+                except ValueError:
+                    pass
+    except Exception:
+        pass
     return None
 
 

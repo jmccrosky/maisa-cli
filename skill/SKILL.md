@@ -43,14 +43,19 @@ Auth is a captured web session that lasts ~1 hour. Two rules:
    run `maisa keepalive` every few minutes so it doesn't expire mid-task.
 
 2. **Re-login when it expires.** Any command may exit code 2 / print
-   "Session expired". When that happens:
-   - Run `maisa login --remote` (add `--novnc-port 6080` only if a noVNC server
-     is running — see the repo's REMOTE-LOGIN.md).
-   - It prints a line `REMOTE_LOGIN_READY :: <how to connect>`. **Send that line
-     to the user over WhatsApp**, asking them to connect from their phone and
-     complete the bank login (they approve in their bank app as usual).
-   - It blocks until they finish, then prints `REMOTE_LOGIN_DONE :: session
-     captured` and exits 0. Then retry the original command.
+   "Session expired". When that happens, run:
+
+       maisa login --stream
+
+   This streams a browser to the user's phone over Tailscale (no macOS Screen
+   Sharing needed). It prints `REMOTE_LOGIN_READY :: Open this on your phone
+   (Tailscale): http://<ip>:6080/`. **Send that URL to the user over WhatsApp**
+   and ask them to open it and complete the bank login there (tap their bank,
+   type their user ID with the on-screen keyboard bar, approve in their bank
+   app). It blocks until they reach the Maisa home page, then prints
+   `REMOTE_LOGIN_DONE :: session captured` and exits 0. Then retry the original
+   command. (Run it in the background so you can read the READY line and relay
+   it while it waits.)
 
 You never handle the user's bank credentials — the user always does the bank
 step themselves on their phone. There is no way around a periodic strong-auth
