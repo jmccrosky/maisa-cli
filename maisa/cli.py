@@ -50,6 +50,12 @@ def _run(fn):
 
 def cmd_login(args):
     from . import auth
+    if args.stream:
+        # Capture-free: stream the browser itself to the phone over Tailscale.
+        # No macOS Screen Sharing needed. Blocks until login completes.
+        from . import remoteview
+        remoteview.run(host=args.host, port=args.port, timeout_s=args.timeout)
+        return 0
     if args.remote:
         # Unattended Mac: browser opens here, user drives it from their phone
         # over Tailscale/Screen Sharing. The READY line is meant to be relayed.
@@ -377,6 +383,10 @@ def build_parser():
                     help="unattended Mac: open the browser here, drive it from your phone via Tailscale/Screen Sharing")
     pl.add_argument("--novnc-port", type=int, default=None,
                     help="if a noVNC/websockify server is running on this port, emit a tap-to-open link instead of a VNC address")
+    pl.add_argument("--stream", action="store_true",
+                    help="capture-free: stream the browser itself to your phone over Tailscale (no Screen Sharing needed)")
+    pl.add_argument("--host", default="0.0.0.0", help="bind host for --stream (default 0.0.0.0)")
+    pl.add_argument("--port", type=int, default=6080, help="port for the --stream viewer")
     pl.set_defaults(func=cmd_login)
 
     ps = sub.add_parser("session", help="manage the stored session")

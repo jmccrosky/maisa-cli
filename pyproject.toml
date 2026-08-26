@@ -12,6 +12,7 @@ dependencies = [
     # supports fetching Chromium on macOS 13 (Ventura). Newer versions refuse
     # the download there. Works on newer macOS too.
     "playwright==1.60.0",
+    "aiohttp>=3.9",
 ]
 
 [project.scripts]
