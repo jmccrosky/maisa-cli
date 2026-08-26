@@ -37,21 +37,22 @@ VIEWER_HTML = """<!doctype html><html><head>
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
 <title>Maisa login</title>
 <style>
+  *{box-sizing:border-box}
   html,body{margin:0;height:100%;background:#111;overflow:hidden;font-family:-apple-system,sans-serif}
-  #wrap{position:fixed;inset:0;display:flex;flex-direction:column}
-  #screen{flex:1;width:100%;object-fit:contain;background:#000;touch-action:none;user-select:none}
-  #bar{display:flex;gap:6px;padding:6px;background:#1c1c1e;align-items:center}
-  #kbd{flex:1;font-size:16px;padding:8px;border-radius:8px;border:0;background:#2c2c2e;color:#fff}
-  .b{padding:8px 10px;border-radius:8px;border:0;background:#3a3a3c;color:#fff;font-size:14px}
-  #status{position:fixed;top:4px;left:6px;color:#8e8e93;font-size:11px;pointer-events:none}
+  /* Fixed positioning + safe-area insets so the bar stays visible on iOS Safari. */
+  #screenwrap{position:fixed;top:0;left:0;right:0;bottom:calc(60px + env(safe-area-inset-bottom));background:#000}
+  #screen{width:100%;height:100%;object-fit:contain;touch-action:none;user-select:none;display:block}
+  #bar{position:fixed;left:0;right:0;bottom:0;display:flex;gap:6px;align-items:center;z-index:10;
+       background:#1c1c1e;padding:9px 8px calc(9px + env(safe-area-inset-bottom))}
+  #kbd{flex:1;min-width:0;font-size:16px;padding:11px;border-radius:9px;border:0;background:#2c2c2e;color:#fff}
+  .b{padding:11px 14px;border-radius:9px;border:0;background:#3a3a3c;color:#fff;font-size:17px}
+  #status{position:fixed;top:4px;left:6px;color:#8e8e93;font-size:11px;pointer-events:none;z-index:11}
 </style></head><body>
-<div id=wrap>
-  <img id=screen>
-  <div id=bar>
-    <input id=kbd placeholder="tap a field above, then type here" autocapitalize=off autocorrect=off spellcheck=false>
-    <button class=b id=bksp>&#9003;</button>
-    <button class=b id=ent>&#9166;</button>
-  </div>
+<div id=screenwrap><img id=screen></div>
+<div id=bar>
+  <input id=kbd placeholder="type here (tap a field above first)" autocapitalize=off autocorrect=off spellcheck=false autocomplete=off>
+  <button class=b id=bksp>&#9003;</button>
+  <button class=b id=ent>&#9166;</button>
 </div>
 <div id=status>connecting…</div>
 <script>
