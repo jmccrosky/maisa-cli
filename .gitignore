@@ -1,0 +1,20 @@
+# Python / uv
+__pycache__/
+*.pyc
+.venv/
+.uv/
+*.egg-info/
+dist/
+build/
+
+# Never commit sessions, tokens, or captured PHI
+*.session.json
+state.json
+session.json
+last-discovery.jsonl
+*-discovery.jsonl
+*-capture.json
+*-requests.json
+cc-chunk.js
+send-step-*.png
+compose-form.png
