@@ -194,7 +194,7 @@ async def serve_login(host: str = "0.0.0.0", port: int = 6080, timeout_s: int = 
         # Wait for the authenticated home page.
         captured = None
         for _ in range(timeout_s):
-            if "/maisa/Home/" in page.url:
+            if "/maisa/Home" in page.url:
                 try:
                     await page.wait_for_load_state("networkidle", timeout=15000)
                 except Exception:
