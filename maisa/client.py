@@ -113,6 +113,12 @@ class MaisaClient:
         self._check_alive(resp)
         m = _CSRF_RE.search(resp.text)
         if not m:
+            # Since Oct 2026 /Home/CSRFToken can come back empty; the token is
+            # also in the Home page's hidden __CSRFContainer.
+            resp = self._http.get(f"{self.session.app_url}/Home")
+            self._check_alive(resp)
+            m = _CSRF_RE.search(resp.text)
+        if not m:
             raise RuntimeError("Could not parse CSRF token from /Home/CSRFToken")
         token = m.group(1)
         self.session.csrf_token = token

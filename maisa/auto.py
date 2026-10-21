@@ -108,7 +108,7 @@ def auto_login(headless: bool = True, timeout_s: int = 240):
         start = _t.time()
         diag_saved = False
         while _t.time() - start < timeout_s:
-            if "/maisa/Home/" in page.url:
+            if "/maisa/Home" in page.url:
                 break
             for lbl in continue_labels:
                 try:
@@ -121,7 +121,7 @@ def auto_login(headless: bool = True, timeout_s: int = 240):
                     pass
             # One privacy-safe diagnostic (URL + control labels only, no screenshot
             # — the consent page shows the user's SSN/name) if still not home.
-            if not diag_saved and _t.time() - start > 12 and "/maisa/Home/" not in page.url:
+            if not diag_saved and _t.time() - start > 12 and "/maisa/Home" not in page.url:
                 try:
                     labels = page.eval_on_selector_all(
                         "button,a,input[type=submit]",
@@ -134,7 +134,7 @@ def auto_login(headless: bool = True, timeout_s: int = 240):
                 diag_saved = True
             _t.sleep(1)
 
-        if "/maisa/Home/" not in page.url:
+        if "/maisa/Home" not in page.url:
             browser.close()
             print("AUTO_LOGIN_TIMEOUT :: did not reach Maisa home (see auto-stuck.txt)", flush=True)
             return None

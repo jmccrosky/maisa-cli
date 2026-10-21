@@ -19,6 +19,7 @@ is reverse-engineered.
 from __future__ import annotations
 
 import json
+import re
 import os
 import shutil
 import subprocess
@@ -145,7 +146,7 @@ def login(headless: bool = False, discover: bool = True, timeout_s: int = 300) -
         print(f"Opening {LOGIN_URL}\n>> Complete the bank / strong authentication in the browser window.")
         page.goto(LOGIN_URL)
         # Wait until we land on the authenticated Home page.
-        page.wait_for_url("**/maisa/Home/**", timeout=timeout_s * 1000)
+        page.wait_for_url(re.compile(r"/maisa/Home(/|$|\?)"), timeout=timeout_s * 1000)
         print("Login detected. Capturing session…")
         page.wait_for_load_state("networkidle", timeout=20000)
         if discover:
@@ -237,7 +238,7 @@ def remote_login(timeout_s: int = 900, novnc_port: int | None = None) -> Session
             page = context.new_page()
             page.goto(LOGIN_URL)
             print(">> Waiting for you to complete the bank login on your phone…", flush=True)
-            page.wait_for_url("**/maisa/Home/**", timeout=timeout_s * 1000)
+            page.wait_for_url(re.compile(r"/maisa/Home(/|$|\?)"), timeout=timeout_s * 1000)
             page.wait_for_load_state("networkidle", timeout=20000)
             sess = save_state(context)
             browser.close()
